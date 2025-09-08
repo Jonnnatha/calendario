@@ -7,9 +7,24 @@ use App\Models\User;
 use App\Notifications\UpcomingSurgery;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class SurgeryController extends Controller
 {
+    /**
+     * Display a listing of the doctor's surgeries.
+     */
+    public function index(Request $request): Response
+    {
+        $surgeries = Surgery::where('doctor_id', $request->user()->id)
+            ->get(['id', 'room_number', 'start_time', 'end_time']);
+
+        return Inertia::render('Medico/Calendar', [
+            'surgeries' => $surgeries,
+        ]);
+    }
+
     /**
      * Store a newly created surgery in storage.
      */
