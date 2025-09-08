@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Surgery;
+use App\Models\User;
+use App\Notifications\UpcomingSurgery;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -26,7 +28,11 @@ class SurgeryController extends Controller
             ]);
         }
 
-        Surgery::create($data);
+        $surgery = Surgery::create($data);
+
+        if ($doctor = User::find($surgery->doctor_id)) {
+            $doctor->notify(new UpcomingSurgery($surgery->start_time));
+        }
 
         return back();
     }
