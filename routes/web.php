@@ -20,12 +20,16 @@ Route::redirect('/', '/login');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified', 'role:adm|medico|enfermeiro'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'role:adm|medico|enfermeiro'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+Route::middleware(['auth', 'role:adm'])->get('/admin', fn () => 'admin area');
+Route::middleware(['auth', 'role:medico'])->get('/medico', fn () => 'medico area');
+Route::middleware(['auth', 'role:enfermeiro'])->get('/enfermeiro', fn () => 'enfermeiro area');
 
 require __DIR__.'/auth.php';
