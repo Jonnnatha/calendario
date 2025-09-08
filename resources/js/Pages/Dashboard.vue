@@ -1,6 +1,13 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
+
+const props = defineProps({
+    surgeries: {
+        type: Array,
+        default: () => [],
+    },
+});
 </script>
 
 <template>
@@ -14,7 +21,15 @@ import { Head } from '@inertiajs/vue3';
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900">You're logged in!</div>
+                    <div class="p-6 text-gray-900">
+                        <ul>
+                            <li v-for="surgery in surgeries" :key="surgery.id">
+                                <span :title="`Criado por: ${surgery.creator?.name ?? 'N/A'}\nConfirmado por: ${surgery.confirmer?.name ?? 'Pendente'}`">
+                                    {{ surgery.title }}
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>

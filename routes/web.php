@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SurgeryController;
 use Inertia\Inertia;
 
 /*
@@ -18,9 +19,7 @@ use Inertia\Inertia;
 
 Route::redirect('/', '/login');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified', 'role:adm|medico|enfermeiro'])->name('dashboard');
+Route::get('/dashboard', [SurgeryController::class, 'index'])->middleware(['auth', 'verified', 'role:adm|medico|enfermeiro'])->name('dashboard');
 
 Route::middleware(['auth', 'role:adm|medico|enfermeiro'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -31,5 +30,8 @@ Route::middleware(['auth', 'role:adm|medico|enfermeiro'])->group(function () {
 Route::middleware(['auth', 'role:adm'])->get('/admin', fn () => 'admin area');
 Route::middleware(['auth', 'role:medico'])->get('/medico', fn () => 'medico area');
 Route::middleware(['auth', 'role:enfermeiro'])->get('/enfermeiro', fn () => 'enfermeiro area');
+
+Route::middleware(["auth", "role:medico"])->post("/surgeries", [SurgeryController::class, "store"]);
+Route::middleware(["auth", "role:enfermeiro"])->post("/surgeries/{surgery}/confirm", [SurgeryController::class, "confirm"]);
 
 require __DIR__.'/auth.php';
