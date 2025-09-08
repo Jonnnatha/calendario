@@ -38,5 +38,22 @@ class SurgeryTest extends TestCase
 
         $response->assertSessionHasErrors('room_number');
     }
+
+    public function test_doctor_cannot_schedule_surgery_for_another_user(): void
+    {
+        $doctor = User::factory()->create();
+        $otherDoctor = User::factory()->create();
+        $doctor->assignRole('medico');
+        $otherDoctor->assignRole('medico');
+
+        $response = $this->actingAs($doctor)->post('/surgeries', [
+            'doctor_id' => $otherDoctor->id,
+            'room_number' => 1,
+            'start_time' => now()->addDay(),
+            'end_time' => now()->addDay()->addHour(),
+        ]);
+
+        $response->assertSessionHasErrors('doctor_id');
+    }
 }
 
