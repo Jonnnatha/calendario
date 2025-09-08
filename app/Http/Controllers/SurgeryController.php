@@ -20,6 +20,12 @@ class SurgeryController extends Controller
             'end_time' => ['required', 'date', 'after:start_time'],
         ]);
 
+        if ($request->user()->id !== $data['doctor_id']) {
+            return back()->withErrors([
+                'doctor_id' => 'Doctors can only schedule surgeries for themselves.',
+            ]);
+        }
+
         if (Surgery::roomConflicts($data['room_number'], $data['start_time'], $data['end_time'])->exists()) {
             return back()->withErrors([
                 'room_number' => 'Room already booked for the selected time.',
