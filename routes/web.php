@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SurgeryController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -26,6 +27,10 @@ Route::middleware(['auth', 'role:adm|medico|enfermeiro'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/calendar', fn () => Inertia::render('Calendar'))->name('calendar');
+    Route::post('/calendar/create-surgery', [SurgeryController::class, 'store'])->name('surgery.store');
+    Route::post('/calendar/confirm-surgery', [SurgeryController::class, 'confirm'])->name('surgery.confirm');
 });
 
 Route::middleware(['auth', 'role:adm'])->get('/admin', fn () => 'admin area');
