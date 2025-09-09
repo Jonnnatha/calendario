@@ -21,15 +21,18 @@ const props = defineProps({
         default: () => [],
     },
 });
+const selectedRoom = ref(1);
 
 const events = computed(() =>
-    props.surgeries.map((surgery) => ({
-        id: surgery.id,
-        start: surgery.start_time,
-        end: surgery.end_time,
-        title: `Sala ${surgery.room_number}`,
-        extendedProps: { status: surgery.status },
-    }))
+    props.surgeries
+        .filter((surgery) => surgery.room_number === selectedRoom.value)
+        .map((surgery) => ({
+            id: surgery.id,
+            start: surgery.start_time,
+            end: surgery.end_time,
+            title: `Sala ${surgery.room_number}`,
+            extendedProps: { status: surgery.status },
+        }))
 );
 
 const options = computed(() => ({
@@ -41,6 +44,4 @@ const options = computed(() => ({
         return ['event', status === 'conflict' ? 'event--conflict' : `event--${status}`];
     },
 }));
-
-const selectedRoom = ref(1);
 </script>
