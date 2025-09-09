@@ -59,16 +59,12 @@ class SurgeryController extends Controller
     /**
      * Confirm a scheduled surgery.
      */
-    public function confirm(Request $request, Surgery $surgery): Response
+    public function confirm(Request $request, Surgery $surgery): RedirectResponse
     {
         $surgery->confirmed_by = $request->user()->id;
         $surgery->save();
 
-        $surgery->status = 'confirmado';
-
-        return Inertia::render('Medico/Calendar', [
-            'surgery' => $surgery->load(['creator', 'confirmer']),
-        ]);
+        return redirect()->route('surgeries.index');
     }
 }
 
