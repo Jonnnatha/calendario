@@ -45,7 +45,11 @@ class SurgeryConfirmationTest extends TestCase
 
     public function test_enfermeiro_can_confirm_surgery(): void
     {
-        $surgery = Surgery::factory()->create();
+        $doctor = User::factory()->create();
+        $surgery = Surgery::factory()->create([
+            'doctor_id' => $doctor->id,
+            'created_by' => $doctor->id,
+        ]);
 
         $nurse = User::factory()->create();
         $nurse->assignRole('enfermeiro');
@@ -58,6 +62,7 @@ class SurgeryConfirmationTest extends TestCase
             'id' => $surgery->id,
             'status' => 'confirmed',
             'confirmed_by' => $nurse->id,
+            'created_by' => $doctor->id,
         ]);
     }
 }

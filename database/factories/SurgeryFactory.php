@@ -27,6 +27,7 @@ class SurgeryFactory extends Factory
             'expected_duration' => $this->faker->numberBetween(30, 180),
             'start_time' => $start,
             'end_time' => $end,
+            'created_by' => User::factory(),
         ];
     }
 }
