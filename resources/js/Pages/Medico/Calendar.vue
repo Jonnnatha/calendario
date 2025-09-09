@@ -40,8 +40,14 @@ const submit = () => {
     form.post(route('surgeries.store'));
 };
 
+const fetchSurgeries = () => {
+    router.reload({ only: ['surgeries'] });
+};
+
 const confirm = (id) => {
-    router.post(route('surgeries.confirm', id));
+    router.post(route('surgeries.confirm', id), {}, {
+        onSuccess: () => fetchSurgeries(),
+    });
 };
 
 const surgeries = computed(() => props.surgeries.data || props.surgeries);
