@@ -16,6 +16,22 @@ class SurgeryController extends Controller
      */
     public function index(Request $request): Response
     {
+        // Recalculate conflicts to ensure stored state is consistent
+        Surgery::all()->each(function (Surgery $surgery) {
+            $endsAt = Carbon::parse($surgery->starts_at)->addMinutes($surgery->duration_min);
+
+            $hasConflict = Surgery::roomConflicts(
+                $surgery->room,
+                $surgery->starts_at,
+                $endsAt,
+            )->where('id', '!=', $surgery->id)->exists();
+
+            if ($surgery->is_conflict !== $hasConflict) {
+                $surgery->is_conflict = $hasConflict;
+                $surgery->save();
+            }
+        });
+
         $surgeries = Surgery::with(['creator', 'confirmer'])->paginate(15);
 
         $surgeries->getCollection()->transform(function (Surgery $surgery) {
@@ -51,7 +67,14 @@ class SurgeryController extends Controller
 
         $data['created_by'] = $request->user()->id;
 
-        Surgery::create($data);
+        $surgery = Surgery::create($data);
+
+        // Update conflicts for existing surgeries sharing the same room and time
+        Surgery::roomConflicts(
+            $surgery->room,
+            $surgery->starts_at,
+            $surgery->ends_at,
+        )->where('id', '!=', $surgery->id)->update(['is_conflict' => true]);
 
         return back();
     }
