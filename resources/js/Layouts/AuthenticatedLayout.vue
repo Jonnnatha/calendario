@@ -33,11 +33,11 @@ const showingNavigationDropdown = ref(false);
                                     Dashboard
                                 </NavLink>
                                 <NavLink
-                                    v-if="$page.props.auth.user.roles.includes('medico')"
-                                    :href="route('medico')"
-                                    :active="route().current('medico')"
+                                    v-if="$page.props.auth.user.roles.some(role => ['medico', 'enfermeiro'].includes(role))"
+                                    :href="route('surgeries.index')"
+                                    :active="route().current('surgeries.index')"
                                 >
-                                    Medico
+                                    Surgeries
                                 </NavLink>
                             </div>
                         </div>
@@ -123,11 +123,11 @@ const showingNavigationDropdown = ref(false);
                             Dashboard
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
-                            v-if="$page.props.auth.user.roles.includes('medico')"
-                            :href="route('medico')"
-                            :active="route().current('medico')"
+                            v-if="$page.props.auth.user.roles.some(role => ['medico', 'enfermeiro'].includes(role))"
+                            :href="route('surgeries.index')"
+                            :active="route().current('surgeries.index')"
                         >
-                            Medico
+                            Surgeries
                         </ResponsiveNavLink>
                     </div>
 

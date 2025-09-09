@@ -34,8 +34,8 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        if ($request->user()->hasRole('medico')) {
-            return redirect()->intended('/medico');
+        if ($request->user()->hasAnyRole(['medico', 'enfermeiro'])) {
+            return redirect()->intended(route('surgeries.index'));
         }
 
         return redirect()->intended(RouteServiceProvider::HOME);

@@ -21,8 +21,8 @@ use Inertia\Inertia;
 Route::redirect('/', '/login');
 
 Route::get('/dashboard', function (Request $request) {
-    return $request->user()->hasRole('medico')
-        ? redirect()->route('medico')
+    return $request->user()->hasAnyRole(['medico', 'enfermeiro'])
+        ? redirect()->route('surgeries.index')
         : Inertia::render('Dashboard');
 })->middleware(['auth', 'verified', 'role:adm|medico|enfermeiro'])->name('dashboard');
 
@@ -33,8 +33,9 @@ Route::middleware(['auth', 'role:adm|medico|enfermeiro'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:adm'])->get('/admin', fn () => 'admin area');
-Route::middleware(['auth', 'role:medico'])->get('/medico', [SurgeryController::class, 'index'])->name('medico');
-Route::middleware(['auth', 'role:enfermeiro'])->get('/enfermeiro', fn () => Inertia::render('Enfermeiro/Confirm'));
+Route::middleware(['auth', 'role:medico|enfermeiro'])->get('/surgeries', [SurgeryController::class, 'index'])->name('surgeries.index');
+Route::redirect('/medico', '/surgeries')->middleware(['auth', 'role:medico']);
+Route::redirect('/enfermeiro', '/surgeries')->middleware(['auth', 'role:enfermeiro']);
 Route::middleware(['auth', 'role:medico'])->post('/surgeries', [SurgeryController::class, 'store'])->name('surgeries.store');
 Route::middleware(['auth', 'role:enfermeiro'])->post('/surgeries/{surgery}/confirm', [SurgeryController::class, 'confirm'])->name('surgeries.confirm');
 

@@ -139,7 +139,7 @@ class SurgeryTest extends TestCase
             'end_time' => $surgeryOne->end_time->copy()->addMinutes(30),
         ]);
 
-        $response = $this->actingAs($doctor)->get('/medico');
+        $response = $this->actingAs($doctor)->get('/surgeries');
 
         $response->assertInertia(fn (Assert $page) =>
             $page->component('Medico/Calendar')
