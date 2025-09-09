@@ -17,7 +17,7 @@ class RoleAccessTest extends TestCase
         $this->seed(RoleSeeder::class);
     }
 
-    public function test_admin_access()
+    public function test_admin_cannot_access_surgeries()
     {
         $user = User::factory()->create();
         $user->assignRole('adm');
@@ -26,7 +26,7 @@ class RoleAccessTest extends TestCase
         $this->actingAs($user)->get('/surgeries')->assertForbidden();
     }
 
-    public function test_medico_access()
+    public function test_medico_can_access_surgeries()
     {
         $user = User::factory()->create();
         $user->assignRole('medico');
@@ -35,7 +35,7 @@ class RoleAccessTest extends TestCase
         $this->actingAs($user)->get('/admin')->assertForbidden();
     }
 
-    public function test_enfermeiro_access()
+    public function test_enfermeiro_can_access_surgeries()
     {
         $user = User::factory()->create();
         $user->assignRole('enfermeiro');
