@@ -50,10 +50,10 @@ const links = computed(() => props.surgeries.links || []);
 const endTime = (s) => s.end_time || computeEnd(s.start_time, s.expected_duration);
 
 const rowClass = (s) => {
-    if (s.is_conflict || s.status === 'conflict') {
+    if (s.status === 'conflito') {
         return 'bg-red-100 text-red-800 font-bold';
     }
-    if (s.status === 'confirmed') {
+    if (s.status === 'confirmado') {
         return 'bg-green-100 text-green-800';
     }
     return 'bg-blue-100 text-blue-800';
