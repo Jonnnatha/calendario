@@ -52,6 +52,9 @@ class SurgeryController extends Controller
             'end_time' => ['required', 'date', 'after:start_time'],
         ]);
 
+        $data['created_by'] = $request->user()->id;
+        $data['status'] = 'scheduled';
+
         if ($request->user()->id !== $data['doctor_id']) {
             return back()->withErrors([
                 'doctor_id' => 'Doctors can only schedule surgeries for themselves.',

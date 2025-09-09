@@ -19,6 +19,8 @@ class Surgery extends Model
         'expected_duration',
         'start_time',
         'end_time',
+        'status',
+        'created_by',
     ];
 
     /**

@@ -85,6 +85,9 @@ class SurgeryTest extends TestCase
             'patient_name' => 'John Doe',
             'surgery_type' => 'Appendectomy',
             'expected_duration' => 60,
+            'created_by' => $doctor->id,
+            'status' => 'scheduled',
+            'confirmed_by' => null,
         ]);
     }
 
