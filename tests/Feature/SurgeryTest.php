@@ -75,7 +75,7 @@ class SurgeryTest extends TestCase
         ]);
     }
 
-    public function test_cannot_schedule_surgery_in_occupied_room(): void
+    public function test_medico_can_schedule_conflicting_surgery(): void
     {
         $doctor = User::factory()->create();
         $doctor->assignRole('medico');
@@ -93,7 +93,41 @@ class SurgeryTest extends TestCase
             'end_time' => $existing->end_time->copy()->addMinutes(30),
         ]);
 
-        $response->assertSessionHasErrors('room_number');
+        $response->assertRedirect('/');
+        $this->assertDatabaseCount('surgeries', 2);
+    }
+
+    public function test_conflicting_surgeries_are_marked_with_status(): void
+    {
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+
+        $first = Surgery::factory()->create([
+            'doctor_id' => $doctor->id,
+            'room_number' => 1,
+            'start_time' => now()->addDay(),
+            'end_time' => now()->addDay()->addHour(),
+        ]);
+
+        $second = Surgery::factory()->create([
+            'doctor_id' => $doctor->id,
+            'room_number' => 1,
+            'start_time' => $first->start_time->copy()->addMinutes(30),
+            'end_time' => $first->end_time->copy()->addMinutes(30),
+        ]);
+
+        Surgery::factory()->create([
+            'doctor_id' => $doctor->id,
+            'room_number' => 2,
+            'start_time' => now()->addDays(2),
+            'end_time' => now()->addDays(2)->addHour(),
+        ]);
+
+        $response = $this->actingAs($doctor)->get('/medico');
+
+        $surgeries = $response->viewData('page')['props']['surgeries'];
+        $conflicts = array_filter($surgeries, fn ($s) => ($s['status'] ?? null) === 'conflict');
+        $this->assertCount(2, $conflicts);
     }
 
     public function test_doctor_cannot_schedule_surgery_for_another_user(): void
