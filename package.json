@@ -17,6 +17,10 @@
         "tailwindcss": "^3.2.1",
         "vite": "^5.0.0",
         "vue": "^3.4.0",
-        "vue-simple-calendar": "^5.0.1"
+        "@fullcalendar/core": "^6.1.10",
+        "@fullcalendar/daygrid": "^6.1.10",
+        "@fullcalendar/interaction": "^6.1.10",
+        "@fullcalendar/timegrid": "^6.1.10",
+        "@fullcalendar/vue3": "^6.1.10"
     }
 }
