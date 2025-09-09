@@ -46,6 +46,7 @@ class Surgery extends Model
                 'room_number' => $surgery->room_number,
                 'start_time' => $surgery->start_time,
                 'end_time' => $surgery->end_time,
+                'created_by' => auth()->id(),
             ]);
         });
 
@@ -55,6 +56,7 @@ class Surgery extends Model
                 'room_number' => $surgery->room_number,
                 'start_time' => $surgery->start_time,
                 'end_time' => $surgery->end_time,
+                'confirmed_by' => auth()->id(),
             ]);
         });
 
@@ -64,6 +66,7 @@ class Surgery extends Model
                 'room_number' => $surgery->room_number,
                 'start_time' => $surgery->start_time,
                 'end_time' => $surgery->end_time,
+                'confirmed_by' => auth()->id(),
             ]);
         });
     }
