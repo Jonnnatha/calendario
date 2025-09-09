@@ -112,5 +112,22 @@ class SurgeryTest extends TestCase
 
         $response->assertSessionHasErrors('doctor_id');
     }
+
+    public function test_room_number_outside_valid_range_is_rejected(): void
+    {
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+
+        foreach ([0, 10] as $invalidRoom) {
+            $response = $this->actingAs($doctor)->post('/surgeries', [
+                'doctor_id' => $doctor->id,
+                'room_number' => $invalidRoom,
+                'start_time' => now()->addDay(),
+                'end_time' => now()->addDay()->addHour(),
+            ]);
+
+            $response->assertSessionHasErrors('room_number');
+        }
+    }
 }
 

@@ -32,7 +32,7 @@ class SurgeryController extends Controller
     {
         $data = $request->validate([
             'doctor_id' => ['required', 'exists:users,id'],
-            'room_number' => ['required', 'integer'],
+            'room_number' => ['required', 'integer', 'between:1,9'],
             'start_time' => ['required', 'date'],
             'end_time' => ['required', 'date', 'after:start_time'],
         ]);

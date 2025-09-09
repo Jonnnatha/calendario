@@ -1,5 +1,14 @@
 <template>
     <div class="p-4">
+        <form class="mb-4">
+            <label for="room_number" class="mr-2">Sala</label>
+            <select id="room_number" name="room_number" class="border rounded p-1">
+                <option v-for="room in rooms" :key="room" :value="room">
+                    Sala {{ room }}
+                </option>
+            </select>
+        </form>
+
         <CalendarView :events="events">
             <template #event="{ event }">
                 <div class="p-1">
@@ -30,4 +39,6 @@ const events = computed(() =>
         title: `Sala ${surgery.room_number}`,
     }))
 );
+
+const rooms = Array.from({ length: 9 }, (_, i) => i + 1);
 </script>
