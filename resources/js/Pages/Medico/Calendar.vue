@@ -16,7 +16,7 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import { CalendarView } from 'vue-simple-calendar';
+import CalendarView from 'vue-simple-calendar/src/CalendarView.vue';
 import RoomNumberSelect from '@/Components/RoomNumberSelect.vue';
 
 const props = defineProps({
