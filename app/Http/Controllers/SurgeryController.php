@@ -18,7 +18,7 @@ class SurgeryController extends Controller
     public function index(Request $request): Response
     {
         $surgeries = Surgery::where('doctor_id', $request->user()->id)
-            ->get(['id', 'room_number', 'start_time', 'end_time']);
+            ->get(['id', 'room_number', 'patient_name', 'surgery_type', 'expected_duration', 'start_time', 'end_time']);
 
         return Inertia::render('Medico/Calendar', [
             'surgeries' => $surgeries,
@@ -33,6 +33,9 @@ class SurgeryController extends Controller
         $data = $request->validate([
             'doctor_id' => ['required', 'exists:users,id'],
             'room_number' => ['required', 'integer'],
+            'patient_name' => ['required', 'string'],
+            'surgery_type' => ['required', 'string'],
+            'expected_duration' => ['required', 'integer'],
             'start_time' => ['required', 'date'],
             'end_time' => ['required', 'date', 'after:start_time'],
         ]);

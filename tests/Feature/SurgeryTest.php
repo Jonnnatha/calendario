@@ -26,6 +26,9 @@ class SurgeryTest extends TestCase
         $response = $this->post('/surgeries', [
             'doctor_id' => $doctor->id,
             'room_number' => 1,
+            'patient_name' => 'John Doe',
+            'surgery_type' => 'Appendectomy',
+            'expected_duration' => 60,
             'start_time' => now()->addDay(),
             'end_time' => now()->addDay()->addHour(),
         ]);
@@ -47,6 +50,9 @@ class SurgeryTest extends TestCase
             $response = $this->actingAs($user)->post('/surgeries', [
                 'doctor_id' => $doctor->id,
                 'room_number' => 1,
+                'patient_name' => 'John Doe',
+                'surgery_type' => 'Appendectomy',
+                'expected_duration' => 60,
                 'start_time' => now()->addDay(),
                 'end_time' => now()->addDay()->addHour(),
             ]);
@@ -63,6 +69,9 @@ class SurgeryTest extends TestCase
         $response = $this->actingAs($doctor)->post('/surgeries', [
             'doctor_id' => $doctor->id,
             'room_number' => 1,
+            'patient_name' => 'John Doe',
+            'surgery_type' => 'Appendectomy',
+            'expected_duration' => 60,
             'start_time' => now()->addDay(),
             'end_time' => now()->addDay()->addHour(),
         ]);
@@ -72,6 +81,9 @@ class SurgeryTest extends TestCase
         $this->assertDatabaseHas('surgeries', [
             'doctor_id' => $doctor->id,
             'room_number' => 1,
+            'patient_name' => 'John Doe',
+            'surgery_type' => 'Appendectomy',
+            'expected_duration' => 60,
         ]);
     }
 
@@ -82,6 +94,9 @@ class SurgeryTest extends TestCase
 
         $existing = Surgery::factory()->create([
             'room_number' => 1,
+            'patient_name' => 'John Doe',
+            'surgery_type' => 'Appendectomy',
+            'expected_duration' => 60,
             'start_time' => now()->addDay(),
             'end_time' => now()->addDay()->addHour(),
         ]);
@@ -89,6 +104,9 @@ class SurgeryTest extends TestCase
         $response = $this->actingAs($doctor)->post('/surgeries', [
             'doctor_id' => $doctor->id,
             'room_number' => 1,
+            'patient_name' => 'John Doe',
+            'surgery_type' => 'Appendectomy',
+            'expected_duration' => 60,
             'start_time' => $existing->start_time->copy()->addMinutes(30),
             'end_time' => $existing->end_time->copy()->addMinutes(30),
         ]);
@@ -106,6 +124,9 @@ class SurgeryTest extends TestCase
         $response = $this->actingAs($doctor)->post('/surgeries', [
             'doctor_id' => $otherDoctor->id,
             'room_number' => 1,
+            'patient_name' => 'John Doe',
+            'surgery_type' => 'Appendectomy',
+            'expected_duration' => 60,
             'start_time' => now()->addDay(),
             'end_time' => now()->addDay()->addHour(),
         ]);

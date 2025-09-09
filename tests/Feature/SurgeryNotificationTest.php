@@ -29,6 +29,9 @@ class SurgeryNotificationTest extends TestCase
         $this->actingAs($doctor)->post('/surgeries', [
             'doctor_id' => $doctor->id,
             'room_number' => 1,
+            'patient_name' => 'John Doe',
+            'surgery_type' => 'Appendectomy',
+            'expected_duration' => 60,
             'start_time' => now()->addHour(),
             'end_time' => now()->addHours(2),
         ]);
