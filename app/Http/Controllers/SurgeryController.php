@@ -3,33 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Models\Surgery;
-use App\Models\User;
-use App\Notifications\UpcomingSurgery;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class SurgeryController extends Controller
 {
     /**
-     * Display a listing of the doctor's surgeries.
+     * Display a listing of all surgeries.
      */
     public function index(Request $request): Response
     {
-        $surgeries = Surgery::where('doctor_id', $request->user()->id)
-            ->get(['id', 'room_number', 'patient_name', 'surgery_type', 'expected_duration', 'start_time', 'end_time', 'status']);
+        $surgeries = Surgery::with(['creator', 'confirmer'])->paginate(15);
 
-        $surgeries->each(function (Surgery $surgery) {
-            $hasConflict = Surgery::roomConflicts(
-                $surgery->room_number,
-                $surgery->start_time,
-                $surgery->end_time
-            )->where('id', '!=', $surgery->id)->exists();
-
-            if ($hasConflict) {
-                $surgery->status = 'conflict';
-            }
+        $surgeries->getCollection()->transform(function (Surgery $surgery) {
+            $surgery->status = $surgery->confirmed_by ? 'confirmado' : 'agendado';
+            return $surgery;
         });
 
         return Inertia::render('Medico/Calendar', [
@@ -43,29 +34,24 @@ class SurgeryController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'doctor_id' => ['required', 'exists:users,id'],
-            'room_number' => ['required', 'integer', 'between:1,9'],
             'patient_name' => ['required', 'string'],
             'surgery_type' => ['required', 'string'],
-            'expected_duration' => ['required', 'integer'],
-            'start_time' => ['required', 'date'],
-            'end_time' => ['required', 'date', 'after:start_time'],
+            'room' => ['required', 'integer', 'between:1,9'],
+            'starts_at' => ['required', 'date'],
+            'duration_min' => ['required', 'integer'],
         ]);
 
+        $endsAt = Carbon::parse($data['starts_at'])->addMinutes($data['duration_min']);
+
+        $data['is_conflict'] = Surgery::roomConflicts(
+            $data['room'],
+            $data['starts_at'],
+            $endsAt,
+        )->exists();
+
         $data['created_by'] = $request->user()->id;
-        $data['status'] = 'scheduled';
 
-        if ($request->user()->id !== $data['doctor_id']) {
-            return back()->withErrors([
-                'doctor_id' => 'Doctors can only schedule surgeries for themselves.',
-            ]);
-        }
-
-        $surgery = Surgery::create($data);
-
-        if ($doctor = User::find($surgery->doctor_id)) {
-            $doctor->notify(new UpcomingSurgery($surgery->start_time));
-        }
+        Surgery::create($data);
 
         return back();
     }
@@ -73,13 +59,16 @@ class SurgeryController extends Controller
     /**
      * Confirm a scheduled surgery.
      */
-    public function confirm(Request $request, Surgery $surgery): RedirectResponse
+    public function confirm(Request $request, Surgery $surgery): Response
     {
-        $surgery->status = 'confirmed';
         $surgery->confirmed_by = $request->user()->id;
         $surgery->save();
 
-        return back();
+        $surgery->status = 'confirmado';
+
+        return Inertia::render('Medico/Calendar', [
+            'surgery' => $surgery->load(['creator', 'confirmer']),
+        ]);
     }
 }
 
