@@ -13,7 +13,7 @@
 <script setup>
 import { computed } from 'vue';
 import { CalendarView } from 'vue-simple-calendar';
-import 'vue-simple-calendar/dist/style.css';
+import 'vue-simple-calendar/dist/vue-simple-calendar.css';
 
 const props = defineProps({
     surgeries: {
