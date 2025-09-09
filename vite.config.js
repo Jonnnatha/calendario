@@ -18,7 +18,4 @@ export default defineConfig({
             },
         }),
     ],
-    optimizeDeps: {
-        include: ['vue-simple-calendar'],
-    },
 });
