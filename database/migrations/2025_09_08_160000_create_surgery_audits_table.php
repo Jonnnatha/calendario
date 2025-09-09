@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('surgery_id');
             $table->unsignedBigInteger('doctor_id');
+            $table->foreignId('created_by')->nullable()->constrained('users');
+            $table->foreignId('confirmed_by')->nullable()->constrained('users');
             $table->integer('room_number');
             $table->timestamp('start_time');
             $table->timestamp('end_time');
