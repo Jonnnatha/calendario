@@ -19,7 +19,10 @@ class SurgeryController extends Controller
         $surgeries = Surgery::with(['creator', 'confirmer'])->paginate(15);
 
         $surgeries->getCollection()->transform(function (Surgery $surgery) {
-            $surgery->status = $surgery->confirmed_by ? 'confirmado' : 'agendado';
+            $surgery->status = $surgery->is_conflict
+                ? 'conflito'
+                : ($surgery->confirmed_by ? 'confirmado' : 'agendado');
+
             return $surgery;
         });
 
@@ -64,7 +67,7 @@ class SurgeryController extends Controller
         $surgery->confirmed_by = $request->user()->id;
         $surgery->save();
 
-        $surgery->status = 'confirmado';
+        $surgery->status = $surgery->is_conflict ? 'conflito' : 'confirmado';
 
         return Inertia::render('Medico/Calendar', [
             'surgery' => $surgery->load(['creator', 'confirmer']),
