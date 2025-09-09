@@ -60,5 +60,17 @@ class SurgeryController extends Controller
 
         return back();
     }
+
+    /**
+     * Confirm a scheduled surgery.
+     */
+    public function confirm(Request $request, Surgery $surgery): RedirectResponse
+    {
+        $surgery->status = 'confirmed';
+        $surgery->confirmed_by = $request->user()->id;
+        $surgery->save();
+
+        return back();
+    }
 }
 
