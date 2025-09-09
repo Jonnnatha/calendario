@@ -35,11 +35,11 @@ class SurgeryAuditTest extends TestCase
 
         $confirmer = User::factory()->create();
         $this->actingAs($confirmer);
-        $surgery->update(['room_number' => 99]);
+        $surgery->update(['room_number' => 9]);
 
         $this->assertDatabaseHas('surgery_audits', [
             'surgery_id' => $surgery->id,
-            'room_number' => 99,
+            'room_number' => 9,
             'confirmed_by' => $confirmer->id,
         ]);
     }

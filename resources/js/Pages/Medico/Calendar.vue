@@ -1,5 +1,6 @@
 <template>
     <div class="p-4">
+        <RoomNumberSelect v-model="selectedRoom" class="mb-4" />
         <CalendarView :events="events">
             <template #event="{ event }">
                 <div class="event" :class="`event--${event.status}`">
@@ -11,8 +12,9 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { CalendarView } from 'vue-simple-calendar';
+import RoomNumberSelect from '@/Components/RoomNumberSelect.vue';
 
 const props = defineProps({
     surgeries: {
@@ -30,4 +32,6 @@ const events = computed(() =>
         status: surgery.status,
     }))
 );
+
+const selectedRoom = ref(1);
 </script>
