@@ -24,9 +24,9 @@ const form = useForm({
     doctor_id: user.id,
     patient_name: '',
     surgery_type: '',
-    room_number: 1,
-    start_time: '',
-    expected_duration: '',
+    room: 1,
+    starts_at: '',
+    duration_min: '',
     end_time: '',
 });
 
@@ -36,7 +36,7 @@ const computeEnd = (start, duration) => {
 };
 
 const submit = () => {
-    form.end_time = computeEnd(form.start_time, form.expected_duration);
+    form.end_time = computeEnd(form.starts_at, form.duration_min);
     form.post(route('surgeries.store'));
 };
 
@@ -47,7 +47,7 @@ const confirm = (id) => {
 const surgeries = computed(() => props.surgeries.data || props.surgeries);
 const links = computed(() => props.surgeries.links || []);
 
-const endTime = (s) => s.end_time || computeEnd(s.start_time, s.expected_duration);
+const endTime = (s) => s.end_time || computeEnd(s.starts_at, s.duration_min);
 
 const rowClass = (s) => {
     if (s.is_conflict || s.status === 'conflict') {
@@ -95,37 +95,37 @@ const rowClass = (s) => {
                     </div>
 
                     <div>
-                        <InputLabel for="room_number" value="Sala" />
+                        <InputLabel for="room" value="Sala" />
                         <RoomNumberSelect
-                            id="room_number"
-                            v-model="form.room_number"
+                            id="room"
+                            v-model="form.room"
                             class="mt-1"
                         />
-                        <InputError class="mt-2" :message="form.errors.room_number" />
+                        <InputError class="mt-2" :message="form.errors.room" />
                     </div>
 
                     <div>
-                        <InputLabel for="start_time" value="Início" />
+                        <InputLabel for="starts_at" value="Início" />
                         <TextInput
-                            id="start_time"
+                            id="starts_at"
                             type="datetime-local"
-                            v-model="form.start_time"
+                            v-model="form.starts_at"
                             class="mt-1 block w-full"
                         />
-                        <InputError class="mt-2" :message="form.errors.start_time" />
+                        <InputError class="mt-2" :message="form.errors.starts_at" />
                     </div>
 
                     <div>
-                        <InputLabel for="expected_duration" value="Duração (min)" />
+                        <InputLabel for="duration_min" value="Duração (min)" />
                         <TextInput
-                            id="expected_duration"
+                            id="duration_min"
                             type="number"
-                            v-model="form.expected_duration"
+                            v-model="form.duration_min"
                             class="mt-1 block w-full"
                         />
                         <InputError
                             class="mt-2"
-                            :message="form.errors.expected_duration"
+                            :message="form.errors.duration_min"
                         />
                     </div>
 
@@ -189,13 +189,13 @@ const rowClass = (s) => {
                                 {{ surgery.surgery_type }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                {{ surgery.room_number }}
+                                {{ surgery.room }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                {{ surgery.start_time }}
+                                {{ surgery.starts_at }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                {{ surgery.expected_duration }}
+                                {{ surgery.duration_min }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 {{ endTime(surgery) }}
