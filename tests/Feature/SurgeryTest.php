@@ -133,5 +133,27 @@ class SurgeryTest extends TestCase
 
         $response->assertSessionHasErrors('doctor_id');
     }
+
+    public function test_room_number_must_be_between_one_and_nine(): void
+    {
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+
+        $this->actingAs($doctor);
+
+        foreach ([0, 10] as $room) {
+            $response = $this->post('/surgeries', [
+                'doctor_id' => $doctor->id,
+                'room_number' => $room,
+                'patient_name' => 'John Doe',
+                'surgery_type' => 'Appendectomy',
+                'expected_duration' => 60,
+                'start_time' => now()->addDay(),
+                'end_time' => now()->addDay()->addHour(),
+            ]);
+
+            $response->assertSessionHasErrors('room_number');
+        }
+    }
 }
 
