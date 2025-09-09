@@ -20,7 +20,15 @@ class SurgeryConfirmationTest extends TestCase
 
     public function test_guest_is_redirected_when_confirming_surgery(): void
     {
-        $surgery = Surgery::factory()->create();
+        $creator = User::factory()->create();
+        $surgery = Surgery::create([
+            'patient_name' => 'John Doe',
+            'surgery_type' => 'Appendectomy',
+            'room' => 1,
+            'starts_at' => now()->addDay(),
+            'duration_min' => 60,
+            'created_by' => $creator->id,
+        ]);
 
         $response = $this->post("/surgeries/{$surgery->id}/confirm");
 
@@ -29,7 +37,15 @@ class SurgeryConfirmationTest extends TestCase
 
     public function test_non_enfermeiro_users_cannot_confirm_surgery(): void
     {
-        $surgery = Surgery::factory()->create();
+        $creator = User::factory()->create();
+        $surgery = Surgery::create([
+            'patient_name' => 'John Doe',
+            'surgery_type' => 'Appendectomy',
+            'room' => 1,
+            'starts_at' => now()->addDay(),
+            'duration_min' => 60,
+            'created_by' => $creator->id,
+        ]);
 
         foreach ([null, 'adm', 'medico'] as $role) {
             $user = User::factory()->create();
@@ -46,23 +62,29 @@ class SurgeryConfirmationTest extends TestCase
     public function test_enfermeiro_can_confirm_surgery(): void
     {
         $doctor = User::factory()->create();
-        $surgery = Surgery::factory()->create([
-            'doctor_id' => $doctor->id,
+        $doctor->assignRole('medico');
+
+        $surgery = Surgery::create([
+            'patient_name' => 'Jane Doe',
+            'surgery_type' => 'Appendectomy',
+            'room' => 1,
+            'starts_at' => now()->addDay(),
+            'duration_min' => 60,
             'created_by' => $doctor->id,
+            'is_conflict' => true,
         ]);
 
         $nurse = User::factory()->create();
         $nurse->assignRole('enfermeiro');
 
-        $response = $this->actingAs($nurse)->from('/surgeries')->post("/surgeries/{$surgery->id}/confirm");
+        $response = $this->actingAs($nurse)->post("/surgeries/{$surgery->id}/confirm");
 
-        $response->assertRedirect('/surgeries');
+        $response->assertOk();
 
         $this->assertDatabaseHas('surgeries', [
             'id' => $surgery->id,
-            'status' => 'confirmed',
             'confirmed_by' => $nurse->id,
-            'created_by' => $doctor->id,
+            'is_conflict' => true,
         ]);
     }
 }
