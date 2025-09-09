@@ -54,9 +54,9 @@ class SurgeryConfirmationTest extends TestCase
         $nurse = User::factory()->create();
         $nurse->assignRole('enfermeiro');
 
-        $response = $this->actingAs($nurse)->from('/enfermeiro')->post("/surgeries/{$surgery->id}/confirm");
+        $response = $this->actingAs($nurse)->from('/dashboard')->post("/surgeries/{$surgery->id}/confirm");
 
-        $response->assertRedirect('/enfermeiro');
+        $response->assertRedirect('/dashboard');
 
         $this->assertDatabaseHas('surgeries', [
             'id' => $surgery->id,

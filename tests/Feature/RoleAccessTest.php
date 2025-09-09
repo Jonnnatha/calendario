@@ -24,7 +24,7 @@ class RoleAccessTest extends TestCase
 
         $this->actingAs($user)->get('/admin')->assertOk();
         $this->actingAs($user)->get('/medico')->assertForbidden();
-        $this->actingAs($user)->get('/enfermeiro')->assertForbidden();
+        $this->actingAs($user)->get('/dashboard')->assertOk();
     }
 
     public function test_medico_access()
@@ -34,7 +34,7 @@ class RoleAccessTest extends TestCase
 
         $this->actingAs($user)->get('/medico')->assertOk();
         $this->actingAs($user)->get('/admin')->assertForbidden();
-        $this->actingAs($user)->get('/enfermeiro')->assertForbidden();
+        $this->actingAs($user)->get('/dashboard')->assertRedirect('/medico');
     }
 
     public function test_enfermeiro_access()
@@ -42,7 +42,7 @@ class RoleAccessTest extends TestCase
         $user = User::factory()->create();
         $user->assignRole('enfermeiro');
 
-        $this->actingAs($user)->get('/enfermeiro')->assertOk();
+        $this->actingAs($user)->get('/dashboard')->assertOk();
         $this->actingAs($user)->get('/admin')->assertForbidden();
         $this->actingAs($user)->get('/medico')->assertForbidden();
     }
