@@ -22,6 +22,9 @@ class SurgeryFactory extends Factory
         return [
             'doctor_id' => User::factory(),
             'room_number' => $this->faker->numberBetween(1, 10),
+            'patient_name' => $this->faker->name(),
+            'surgery_type' => $this->faker->word(),
+            'expected_duration' => $this->faker->numberBetween(30, 180),
             'start_time' => $start,
             'end_time' => $end,
         ];

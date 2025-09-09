@@ -14,6 +14,9 @@ class Surgery extends Model
     protected $fillable = [
         'doctor_id',
         'room_number',
+        'patient_name',
+        'surgery_type',
+        'expected_duration',
         'start_time',
         'end_time',
     ];
