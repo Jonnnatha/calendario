@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Surgery extends Model
@@ -17,21 +18,22 @@ class Surgery extends Model
         'patient_name',
         'surgery_type',
         'expected_duration',
-        'start_time',
-        'end_time',
-        'status',
+        'starts_at',
+        'ends_at',
+        'is_conflict',
         'created_by',
+        'confirmed_by',
     ];
 
     /**
      * Scope a query to only include surgeries that conflict with the given room and time.
      */
-    public function scopeRoomConflicts(Builder $query, int $roomNumber, $startTime, $endTime): Builder
+    public function scopeRoomConflicts(Builder $query, int $roomNumber, $startsAt, $endsAt): Builder
     {
         return $query->where('room_number', $roomNumber)
-            ->where(function (Builder $query) use ($startTime, $endTime) {
-                $query->where('start_time', '<', $endTime)
-                    ->where('end_time', '>', $startTime);
+            ->where(function (Builder $query) use ($startsAt, $endsAt) {
+                $query->where('starts_at', '<', $endsAt)
+                    ->where('ends_at', '>', $startsAt);
             });
     }
 
@@ -46,8 +48,8 @@ class Surgery extends Model
             $surgery->audits()->create([
                 'doctor_id' => $surgery->doctor_id,
                 'room_number' => $surgery->room_number,
-                'start_time' => $surgery->start_time,
-                'end_time' => $surgery->end_time,
+                'starts_at' => $surgery->starts_at,
+                'ends_at' => $surgery->ends_at,
                 'created_by' => auth()->id(),
             ]);
         });
@@ -56,8 +58,8 @@ class Surgery extends Model
             $surgery->audits()->create([
                 'doctor_id' => $surgery->doctor_id,
                 'room_number' => $surgery->room_number,
-                'start_time' => $surgery->start_time,
-                'end_time' => $surgery->end_time,
+                'starts_at' => $surgery->starts_at,
+                'ends_at' => $surgery->ends_at,
                 'confirmed_by' => auth()->id(),
             ]);
         });
@@ -66,11 +68,21 @@ class Surgery extends Model
             $surgery->audits()->create([
                 'doctor_id' => $surgery->doctor_id,
                 'room_number' => $surgery->room_number,
-                'start_time' => $surgery->start_time,
-                'end_time' => $surgery->end_time,
+                'starts_at' => $surgery->starts_at,
+                'ends_at' => $surgery->ends_at,
                 'confirmed_by' => auth()->id(),
             ]);
         });
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function confirmer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'confirmed_by');
     }
 }
 

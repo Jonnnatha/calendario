@@ -18,8 +18,9 @@ return new class extends Migration
             $table->string('patient_name');
             $table->string('surgery_type');
             $table->integer('expected_duration');
-            $table->timestamp('start_time');
-            $table->timestamp('end_time');
+            $table->timestamp('starts_at');
+            $table->timestamp('ends_at');
+            $table->boolean('is_conflict')->default(false);
             $table->timestamps();
         });
     }

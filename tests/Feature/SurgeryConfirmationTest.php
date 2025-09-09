@@ -60,7 +60,6 @@ class SurgeryConfirmationTest extends TestCase
 
         $this->assertDatabaseHas('surgeries', [
             'id' => $surgery->id,
-            'status' => 'confirmed',
             'confirmed_by' => $nurse->id,
             'created_by' => $doctor->id,
         ]);

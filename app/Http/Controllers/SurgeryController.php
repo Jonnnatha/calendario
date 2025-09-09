@@ -7,32 +7,36 @@ use App\Models\User;
 use App\Notifications\UpcomingSurgery;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class SurgeryController extends Controller
 {
     /**
-     * Display a listing of the doctor's surgeries.
+     * Display a listing of surgeries with creator and confirmer information.
      */
     public function index(Request $request): Response
     {
-        $surgeries = Surgery::where('doctor_id', $request->user()->id)
-            ->get(['id', 'room_number', 'patient_name', 'surgery_type', 'expected_duration', 'start_time', 'end_time', 'status']);
+        $surgeries = Surgery::with(['creator:id,name', 'confirmer:id,name'])
+            ->paginate(15)
+            ->through(function (Surgery $surgery) {
+                return [
+                    'id' => $surgery->id,
+                    'room_number' => $surgery->room_number,
+                    'patient_name' => $surgery->patient_name,
+                    'surgery_type' => $surgery->surgery_type,
+                    'expected_duration' => $surgery->expected_duration,
+                    'starts_at' => $surgery->starts_at,
+                    'ends_at' => $surgery->ends_at,
+                    'is_conflict' => (bool) $surgery->is_conflict,
+                    'status' => $surgery->confirmed_by ? 'confirmado' : 'agendado',
+                    'creator' => $surgery->creator?->only(['id', 'name']),
+                    'confirmer' => $surgery->confirmer?->only(['id', 'name']),
+                ];
+            });
 
-        $surgeries->each(function (Surgery $surgery) {
-            $hasConflict = Surgery::roomConflicts(
-                $surgery->room_number,
-                $surgery->start_time,
-                $surgery->end_time
-            )->where('id', '!=', $surgery->id)->exists();
-
-            if ($hasConflict) {
-                $surgery->status = 'conflict';
-            }
-        });
-
-        return Inertia::render('Medico/Calendar', [
+        return Inertia::render('Surgeries/Index', [
             'surgeries' => $surgeries,
         ]);
     }
@@ -48,12 +52,21 @@ class SurgeryController extends Controller
             'patient_name' => ['required', 'string'],
             'surgery_type' => ['required', 'string'],
             'expected_duration' => ['required', 'integer'],
-            'start_time' => ['required', 'date'],
-            'end_time' => ['required', 'date', 'after:start_time'],
+            'starts_at' => ['required', 'date'],
         ]);
 
+        $data['ends_at'] = Carbon::parse($data['starts_at'])->addMinutes($data['expected_duration']);
         $data['created_by'] = $request->user()->id;
-        $data['status'] = 'scheduled';
+
+        $hasConflict = Surgery::roomConflicts(
+            $data['room_number'],
+            $data['starts_at'],
+            $data['ends_at']
+        )->exists();
+
+        if ($hasConflict) {
+            $data['is_conflict'] = true;
+        }
 
         if ($request->user()->id !== $data['doctor_id']) {
             return back()->withErrors([
@@ -64,7 +77,7 @@ class SurgeryController extends Controller
         $surgery = Surgery::create($data);
 
         if ($doctor = User::find($surgery->doctor_id)) {
-            $doctor->notify(new UpcomingSurgery($surgery->start_time));
+            $doctor->notify(new UpcomingSurgery($surgery->starts_at));
         }
 
         return back();
@@ -75,7 +88,6 @@ class SurgeryController extends Controller
      */
     public function confirm(Request $request, Surgery $surgery): RedirectResponse
     {
-        $surgery->status = 'confirmed';
         $surgery->confirmed_by = $request->user()->id;
         $surgery->save();
 

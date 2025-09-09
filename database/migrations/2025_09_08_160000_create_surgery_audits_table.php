@@ -18,8 +18,8 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users');
             $table->foreignId('confirmed_by')->nullable()->constrained('users');
             $table->integer('room_number');
-            $table->timestamp('start_time');
-            $table->timestamp('end_time');
+            $table->timestamp('starts_at');
+            $table->timestamp('ends_at');
             $table->timestamps();
         });
     }

@@ -29,8 +29,8 @@ const events = computed(() =>
         .filter((surgery) => surgery.room_number === selectedRoom.value)
         .map((surgery) => ({
             id: surgery.id,
-            start: surgery.start_time,
-            end: surgery.end_time,
+            start: surgery.starts_at,
+            end: surgery.ends_at,
             title: `Sala ${surgery.room_number}`,
             extendedProps: { status: surgery.status },
         }))

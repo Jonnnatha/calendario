@@ -16,8 +16,8 @@ class SurgeryAudit extends Model
         'created_by',
         'confirmed_by',
         'room_number',
-        'start_time',
-        'end_time',
+        'starts_at',
+        'ends_at',
     ];
 
     public function surgery(): BelongsTo

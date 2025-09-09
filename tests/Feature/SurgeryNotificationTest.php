@@ -32,8 +32,7 @@ class SurgeryNotificationTest extends TestCase
             'patient_name' => 'John Doe',
             'surgery_type' => 'Appendectomy',
             'expected_duration' => 60,
-            'start_time' => now()->addHour(),
-            'end_time' => now()->addHours(2),
+            'starts_at' => now()->addHour(),
         ]);
 
         Notification::assertSentTo($doctor, UpcomingSurgery::class);

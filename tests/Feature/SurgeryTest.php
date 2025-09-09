@@ -30,8 +30,7 @@ class SurgeryTest extends TestCase
             'patient_name' => 'John Doe',
             'surgery_type' => 'Appendectomy',
             'expected_duration' => 60,
-            'start_time' => now()->addDay(),
-            'end_time' => now()->addDay()->addHour(),
+            'starts_at' => now()->addDay(),
         ]);
 
         $response->assertRedirect('/login');
@@ -54,8 +53,7 @@ class SurgeryTest extends TestCase
                 'patient_name' => 'John Doe',
                 'surgery_type' => 'Appendectomy',
                 'expected_duration' => 60,
-                'start_time' => now()->addDay(),
-                'end_time' => now()->addDay()->addHour(),
+                'starts_at' => now()->addDay(),
             ]);
 
             $response->assertForbidden();
@@ -73,8 +71,7 @@ class SurgeryTest extends TestCase
             'patient_name' => 'John Doe',
             'surgery_type' => 'Appendectomy',
             'expected_duration' => 60,
-            'start_time' => now()->addDay(),
-            'end_time' => now()->addDay()->addHour(),
+            'starts_at' => now()->addDay(),
         ]);
 
         $response->assertRedirect('/');
@@ -86,7 +83,7 @@ class SurgeryTest extends TestCase
             'surgery_type' => 'Appendectomy',
             'expected_duration' => 60,
             'created_by' => $doctor->id,
-            'status' => 'scheduled',
+            'is_conflict' => false,
             'confirmed_by' => null,
         ]);
     }
@@ -102,8 +99,8 @@ class SurgeryTest extends TestCase
             'patient_name' => 'John Doe',
             'surgery_type' => 'Appendectomy',
             'expected_duration' => 60,
-            'start_time' => now()->addDay(),
-            'end_time' => now()->addDay()->addHour(),
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDay()->addHour(),
         ]);
 
         $response = $this->actingAs($doctor)->post('/surgeries', [
@@ -112,8 +109,7 @@ class SurgeryTest extends TestCase
             'patient_name' => 'Jane Doe',
             'surgery_type' => 'Appendectomy',
             'expected_duration' => 60,
-            'start_time' => $existing->start_time->copy()->addMinutes(30),
-            'end_time' => $existing->end_time->copy()->addMinutes(30),
+            'starts_at' => $existing->starts_at->copy()->addMinutes(30),
         ]);
 
         $response->assertRedirect('/');
@@ -128,24 +124,26 @@ class SurgeryTest extends TestCase
         $surgeryOne = Surgery::factory()->create([
             'doctor_id' => $doctor->id,
             'room_number' => 1,
-            'start_time' => now()->addDay(),
-            'end_time' => now()->addDay()->addHour(),
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDay()->addHour(),
+            'is_conflict' => true,
         ]);
 
         $surgeryTwo = Surgery::factory()->create([
             'doctor_id' => $doctor->id,
             'room_number' => 1,
-            'start_time' => $surgeryOne->start_time->copy()->addMinutes(30),
-            'end_time' => $surgeryOne->end_time->copy()->addMinutes(30),
+            'starts_at' => $surgeryOne->starts_at->copy()->addMinutes(30),
+            'ends_at' => $surgeryOne->ends_at->copy()->addMinutes(30),
+            'is_conflict' => true,
         ]);
 
-        $response = $this->actingAs($doctor)->get('/medico');
+        $response = $this->actingAs($doctor)->get('/surgeries');
 
         $response->assertInertia(fn (Assert $page) =>
-            $page->component('Medico/Calendar')
-                ->has('surgeries', 2)
-                ->where('surgeries.0.status', 'conflict')
-                ->where('surgeries.1.status', 'conflict')
+            $page->component('Surgeries/Index')
+                ->has('surgeries.data', 2)
+                ->where('surgeries.data.0.is_conflict', true)
+                ->where('surgeries.data.1.is_conflict', true)
         );
     }
 
@@ -162,8 +160,7 @@ class SurgeryTest extends TestCase
             'patient_name' => 'John Doe',
             'surgery_type' => 'Appendectomy',
             'expected_duration' => 60,
-            'start_time' => now()->addDay(),
-            'end_time' => now()->addDay()->addHour(),
+            'starts_at' => now()->addDay(),
         ]);
 
         $response->assertSessionHasErrors('doctor_id');
@@ -183,8 +180,7 @@ class SurgeryTest extends TestCase
                 'patient_name' => 'John Doe',
                 'surgery_type' => 'Appendectomy',
                 'expected_duration' => 60,
-                'start_time' => now()->addDay(),
-                'end_time' => now()->addDay()->addHour(),
+                'starts_at' => now()->addDay(),
             ]);
 
             $response->assertSessionHasErrors('room_number');
