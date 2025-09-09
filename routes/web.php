@@ -34,8 +34,6 @@ Route::middleware(['auth', 'role:adm|medico|enfermeiro'])->group(function () {
 
 Route::middleware(['auth', 'role:adm'])->get('/admin', fn () => 'admin area');
 Route::middleware(['auth', 'role:medico|enfermeiro'])->get('/surgeries', [SurgeryController::class, 'index'])->name('surgeries.index');
-Route::redirect('/medico', '/surgeries')->middleware(['auth', 'role:medico']);
-Route::redirect('/enfermeiro', '/surgeries')->middleware(['auth', 'role:enfermeiro']);
 Route::middleware(['auth', 'role:medico'])->post('/surgeries', [SurgeryController::class, 'store'])->name('surgeries.store');
 Route::middleware(['auth', 'role:enfermeiro'])->post('/surgeries/{surgery}/confirm', [SurgeryController::class, 'confirm'])->name('surgeries.confirm');
 
