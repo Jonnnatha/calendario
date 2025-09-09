@@ -1,0 +1,16 @@
+/* Base calendar event styles */
+.event {
+    @apply rounded px-2 py-1 text-sm;
+}
+
+.event--scheduled {
+    @apply bg-yellow-200 text-yellow-800;
+}
+
+.event--confirmed {
+    @apply bg-green-200 text-green-800;
+}
+
+.event--conflict {
+    @apply bg-red-200 text-red-800;
+}
