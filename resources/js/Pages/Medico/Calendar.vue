@@ -2,7 +2,10 @@
     <div class="p-4">
         <CalendarView :events="events">
             <template #event="{ event }">
-                <div class="event" :class="`event--${event.status}`">
+                <div
+                    class="event"
+                    :class="event.status === 'conflict' ? 'event--conflict' : `event--${event.status}`"
+                >
                     {{ event.title }}
                 </div>
             </template>

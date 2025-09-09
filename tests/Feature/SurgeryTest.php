@@ -6,6 +6,7 @@ use App\Models\Surgery;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class SurgeryTest extends TestCase
@@ -87,12 +88,13 @@ class SurgeryTest extends TestCase
         ]);
     }
 
-    public function test_cannot_schedule_surgery_in_occupied_room(): void
+    public function test_can_schedule_surgery_in_occupied_room(): void
     {
         $doctor = User::factory()->create();
         $doctor->assignRole('medico');
 
         $existing = Surgery::factory()->create([
+            'doctor_id' => $doctor->id,
             'room_number' => 1,
             'patient_name' => 'John Doe',
             'surgery_type' => 'Appendectomy',
@@ -104,14 +106,44 @@ class SurgeryTest extends TestCase
         $response = $this->actingAs($doctor)->post('/surgeries', [
             'doctor_id' => $doctor->id,
             'room_number' => 1,
-            'patient_name' => 'John Doe',
+            'patient_name' => 'Jane Doe',
             'surgery_type' => 'Appendectomy',
             'expected_duration' => 60,
             'start_time' => $existing->start_time->copy()->addMinutes(30),
             'end_time' => $existing->end_time->copy()->addMinutes(30),
         ]);
 
-        $response->assertSessionHasErrors('room_number');
+        $response->assertRedirect('/');
+        $this->assertDatabaseCount('surgeries', 2);
+    }
+
+    public function test_conflicting_surgeries_are_marked_as_conflict_in_index(): void
+    {
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+
+        $surgeryOne = Surgery::factory()->create([
+            'doctor_id' => $doctor->id,
+            'room_number' => 1,
+            'start_time' => now()->addDay(),
+            'end_time' => now()->addDay()->addHour(),
+        ]);
+
+        $surgeryTwo = Surgery::factory()->create([
+            'doctor_id' => $doctor->id,
+            'room_number' => 1,
+            'start_time' => $surgeryOne->start_time->copy()->addMinutes(30),
+            'end_time' => $surgeryOne->end_time->copy()->addMinutes(30),
+        ]);
+
+        $response = $this->actingAs($doctor)->get('/medico');
+
+        $response->assertInertia(fn (Assert $page) =>
+            $page->component('Medico/Calendar')
+                ->has('surgeries', 2)
+                ->where('surgeries.0.status', 'conflict')
+                ->where('surgeries.1.status', 'conflict')
+        );
     }
 
     public function test_doctor_cannot_schedule_surgery_for_another_user(): void

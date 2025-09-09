@@ -18,7 +18,19 @@ class SurgeryController extends Controller
     public function index(Request $request): Response
     {
         $surgeries = Surgery::where('doctor_id', $request->user()->id)
-            ->get(['id', 'room_number', 'patient_name', 'surgery_type', 'expected_duration', 'start_time', 'end_time']);
+            ->get(['id', 'room_number', 'patient_name', 'surgery_type', 'expected_duration', 'start_time', 'end_time', 'status']);
+
+        $surgeries->each(function (Surgery $surgery) {
+            $hasConflict = Surgery::roomConflicts(
+                $surgery->room_number,
+                $surgery->start_time,
+                $surgery->end_time
+            )->where('id', '!=', $surgery->id)->exists();
+
+            if ($hasConflict) {
+                $surgery->status = 'conflict';
+            }
+        });
 
         return Inertia::render('Medico/Calendar', [
             'surgeries' => $surgeries,
@@ -43,12 +55,6 @@ class SurgeryController extends Controller
         if ($request->user()->id !== $data['doctor_id']) {
             return back()->withErrors([
                 'doctor_id' => 'Doctors can only schedule surgeries for themselves.',
-            ]);
-        }
-
-        if (Surgery::roomConflicts($data['room_number'], $data['start_time'], $data['end_time'])->exists()) {
-            return back()->withErrors([
-                'room_number' => 'Room already booked for the selected time.',
             ]);
         }
 
