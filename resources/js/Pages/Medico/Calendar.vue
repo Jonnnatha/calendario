@@ -1,22 +1,19 @@
 <template>
     <div class="p-4">
         <RoomNumberSelect v-model="selectedRoom" class="mb-4" />
-        <CalendarView :events="events">
-            <template #event="{ event }">
-                <div
-                    class="event"
-                    :class="event.status === 'conflict' ? 'event--conflict' : `event--${event.status}`"
-                >
-                    {{ event.title }}
-                </div>
-            </template>
-        </CalendarView>
+        <FullCalendar :options="options" />
     </div>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue';
-import CalendarView from 'vue-simple-calendar/src/CalendarView.vue';
+import FullCalendar from '@fullcalendar/vue3';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import '@fullcalendar/core/index.css';
+import '@fullcalendar/daygrid/index.css';
+import '@fullcalendar/timegrid/index.css';
 import RoomNumberSelect from '@/Components/RoomNumberSelect.vue';
 
 const props = defineProps({
@@ -29,12 +26,22 @@ const props = defineProps({
 const events = computed(() =>
     props.surgeries.map((surgery) => ({
         id: surgery.id,
-        startDate: new Date(surgery.start_time),
-        endDate: new Date(surgery.end_time),
+        start: surgery.start_time,
+        end: surgery.end_time,
         title: `Sala ${surgery.room_number}`,
-        status: surgery.status,
+        extendedProps: { status: surgery.status },
     }))
 );
+
+const options = computed(() => ({
+    plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+    initialView: 'dayGridMonth',
+    events: events.value,
+    eventClassNames({ event }) {
+        const status = event.extendedProps.status;
+        return ['event', status === 'conflict' ? 'event--conflict' : `event--${status}`];
+    },
+}));
 
 const selectedRoom = ref(1);
 </script>
