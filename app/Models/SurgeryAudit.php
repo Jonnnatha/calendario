@@ -12,7 +12,6 @@ class SurgeryAudit extends Model
 
     protected $fillable = [
         'surgery_id',
-        'doctor_id',
         'created_by',
         'confirmed_by',
         'room_number',

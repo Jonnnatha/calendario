@@ -64,17 +64,16 @@ class Surgery extends Model
     {
         static::created(function (Surgery $surgery) {
             $surgery->audits()->create([
-                'doctor_id' => $surgery->doctor_id,
+                'created_by' => $surgery->created_by,
                 'room_number' => $surgery->room,
                 'start_time' => $surgery->starts_at,
                 'end_time' => $surgery->ends_at,
-                'created_by' => auth()->id(),
             ]);
         });
 
         static::updated(function (Surgery $surgery) {
             $surgery->audits()->create([
-                'doctor_id' => $surgery->doctor_id,
+                'created_by' => $surgery->created_by,
                 'room_number' => $surgery->room,
                 'start_time' => $surgery->starts_at,
                 'end_time' => $surgery->ends_at,
@@ -84,7 +83,7 @@ class Surgery extends Model
 
         static::deleted(function (Surgery $surgery) {
             $surgery->audits()->create([
-                'doctor_id' => $surgery->doctor_id,
+                'created_by' => $surgery->created_by,
                 'room_number' => $surgery->room,
                 'start_time' => $surgery->starts_at,
                 'end_time' => $surgery->ends_at,

@@ -21,17 +21,12 @@ class SurgeryTest extends TestCase
 
     public function test_guest_is_redirected_when_posting_surgery(): void
     {
-        $doctor = User::factory()->create();
-        $doctor->assignRole('medico');
-
         $response = $this->post('/surgeries', [
-            'doctor_id' => $doctor->id,
-            'room_number' => 1,
             'patient_name' => 'John Doe',
             'surgery_type' => 'Appendectomy',
-            'expected_duration' => 60,
-            'start_time' => now()->addDay(),
-            'end_time' => now()->addDay()->addHour(),
+            'room' => 1,
+            'duration_min' => 60,
+            'starts_at' => now()->addDay(),
         ]);
 
         $response->assertRedirect('/login');
@@ -39,9 +34,6 @@ class SurgeryTest extends TestCase
 
     public function test_non_medico_users_cannot_schedule_surgery(): void
     {
-        $doctor = User::factory()->create();
-        $doctor->assignRole('medico');
-
         foreach ([null, 'adm', 'enfermeiro'] as $role) {
             $user = User::factory()->create();
             if ($role) {
@@ -49,13 +41,11 @@ class SurgeryTest extends TestCase
             }
 
             $response = $this->actingAs($user)->post('/surgeries', [
-                'doctor_id' => $doctor->id,
-                'room_number' => 1,
                 'patient_name' => 'John Doe',
                 'surgery_type' => 'Appendectomy',
-                'expected_duration' => 60,
-                'start_time' => now()->addDay(),
-                'end_time' => now()->addDay()->addHour(),
+                'room' => 1,
+                'duration_min' => 60,
+                'starts_at' => now()->addDay(),
             ]);
 
             $response->assertForbidden();
@@ -68,25 +58,21 @@ class SurgeryTest extends TestCase
         $doctor->assignRole('medico');
 
         $response = $this->actingAs($doctor)->post('/surgeries', [
-            'doctor_id' => $doctor->id,
-            'room_number' => 1,
             'patient_name' => 'John Doe',
             'surgery_type' => 'Appendectomy',
-            'expected_duration' => 60,
-            'start_time' => now()->addDay(),
-            'end_time' => now()->addDay()->addHour(),
+            'room' => 1,
+            'duration_min' => 60,
+            'starts_at' => now()->addDay(),
         ]);
 
         $response->assertRedirect('/');
 
         $this->assertDatabaseHas('surgeries', [
-            'doctor_id' => $doctor->id,
-            'room_number' => 1,
+            'created_by' => $doctor->id,
+            'room' => 1,
             'patient_name' => 'John Doe',
             'surgery_type' => 'Appendectomy',
-            'expected_duration' => 60,
-            'created_by' => $doctor->id,
-            'status' => 'scheduled',
+            'duration_min' => 60,
             'confirmed_by' => null,
         ]);
     }
@@ -97,23 +83,20 @@ class SurgeryTest extends TestCase
         $doctor->assignRole('medico');
 
         $existing = Surgery::factory()->create([
-            'doctor_id' => $doctor->id,
-            'room_number' => 1,
+            'created_by' => $doctor->id,
+            'room' => 1,
             'patient_name' => 'John Doe',
             'surgery_type' => 'Appendectomy',
-            'expected_duration' => 60,
-            'start_time' => now()->addDay(),
-            'end_time' => now()->addDay()->addHour(),
+            'duration_min' => 60,
+            'starts_at' => now()->addDay(),
         ]);
 
         $response = $this->actingAs($doctor)->post('/surgeries', [
-            'doctor_id' => $doctor->id,
-            'room_number' => 1,
+            'room' => 1,
             'patient_name' => 'Jane Doe',
             'surgery_type' => 'Appendectomy',
-            'expected_duration' => 60,
-            'start_time' => $existing->start_time->copy()->addMinutes(30),
-            'end_time' => $existing->end_time->copy()->addMinutes(30),
+            'duration_min' => 60,
+            'starts_at' => $existing->starts_at->copy()->addMinutes(30),
         ]);
 
         $response->assertRedirect('/');
@@ -126,17 +109,17 @@ class SurgeryTest extends TestCase
         $doctor->assignRole('medico');
 
         $surgeryOne = Surgery::factory()->create([
-            'doctor_id' => $doctor->id,
-            'room_number' => 1,
-            'start_time' => now()->addDay(),
-            'end_time' => now()->addDay()->addHour(),
+            'created_by' => $doctor->id,
+            'room' => 1,
+            'starts_at' => now()->addDay(),
+            'duration_min' => 60,
         ]);
 
         $surgeryTwo = Surgery::factory()->create([
-            'doctor_id' => $doctor->id,
-            'room_number' => 1,
-            'start_time' => $surgeryOne->start_time->copy()->addMinutes(30),
-            'end_time' => $surgeryOne->end_time->copy()->addMinutes(30),
+            'created_by' => $doctor->id,
+            'room' => 1,
+            'starts_at' => $surgeryOne->starts_at->copy()->addMinutes(30),
+            'duration_min' => 60,
         ]);
 
         $response = $this->actingAs($doctor)->get('/surgeries');
@@ -144,8 +127,8 @@ class SurgeryTest extends TestCase
         $response->assertInertia(fn (Assert $page) =>
             $page->component('Medico/Calendar')
                 ->has('surgeries', 2)
-                ->where('surgeries.0.status', 'conflict')
-                ->where('surgeries.1.status', 'conflict')
+                ->where('surgeries.0.is_conflict', false)
+                ->where('surgeries.1.is_conflict', true)
         );
     }
 
@@ -157,16 +140,18 @@ class SurgeryTest extends TestCase
         $otherDoctor->assignRole('medico');
 
         $response = $this->actingAs($doctor)->post('/surgeries', [
-            'doctor_id' => $otherDoctor->id,
-            'room_number' => 1,
+            'created_by' => $otherDoctor->id,
+            'room' => 1,
             'patient_name' => 'John Doe',
             'surgery_type' => 'Appendectomy',
-            'expected_duration' => 60,
-            'start_time' => now()->addDay(),
-            'end_time' => now()->addDay()->addHour(),
+            'duration_min' => 60,
+            'starts_at' => now()->addDay(),
         ]);
 
-        $response->assertSessionHasErrors('doctor_id');
+        $response->assertRedirect('/');
+        $this->assertDatabaseHas('surgeries', [
+            'created_by' => $doctor->id,
+        ]);
     }
 
     public function test_room_number_must_be_between_one_and_nine(): void
@@ -178,16 +163,14 @@ class SurgeryTest extends TestCase
 
         foreach ([0, 10] as $room) {
             $response = $this->post('/surgeries', [
-                'doctor_id' => $doctor->id,
-                'room_number' => $room,
                 'patient_name' => 'John Doe',
                 'surgery_type' => 'Appendectomy',
-                'expected_duration' => 60,
-                'start_time' => now()->addDay(),
-                'end_time' => now()->addDay()->addHour(),
+                'room' => $room,
+                'duration_min' => 60,
+                'starts_at' => now()->addDay(),
             ]);
 
-            $response->assertSessionHasErrors('room_number');
+            $response->assertSessionHasErrors('room');
         }
     }
 }

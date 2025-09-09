@@ -27,13 +27,11 @@ class SurgeryNotificationTest extends TestCase
         $doctor->assignRole('medico');
 
         $this->actingAs($doctor)->post('/surgeries', [
-            'doctor_id' => $doctor->id,
-            'room_number' => 1,
             'patient_name' => 'John Doe',
             'surgery_type' => 'Appendectomy',
-            'expected_duration' => 60,
-            'start_time' => now()->addHour(),
-            'end_time' => now()->addHours(2),
+            'room' => 1,
+            'duration_min' => 60,
+            'starts_at' => now()->addHour(),
         ]);
 
         Notification::assertSentTo($doctor, UpcomingSurgery::class);
