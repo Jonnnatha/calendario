@@ -72,6 +72,7 @@ class SurgeryTest extends TestCase
         $this->assertDatabaseHas('surgeries', [
             'doctor_id' => $doctor->id,
             'room_number' => 1,
+            'created_by' => $doctor->id,
         ]);
     }
 
@@ -111,6 +112,28 @@ class SurgeryTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors('doctor_id');
+    }
+
+    public function test_enfermeiro_can_confirm_surgery(): void
+    {
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+        $surgery = Surgery::factory()->create([
+            'doctor_id' => $doctor->id,
+        ]);
+
+        $nurse = User::factory()->create();
+        $nurse->assignRole('enfermeiro');
+
+        $response = $this->actingAs($nurse)->patch("/surgeries/{$surgery->id}/confirm");
+
+        $response->assertRedirect('/');
+
+        $this->assertDatabaseHas('surgeries', [
+            'id' => $surgery->id,
+            'confirmed_by' => $nurse->id,
+            'status' => 'confirmed',
+        ]);
     }
 }
 

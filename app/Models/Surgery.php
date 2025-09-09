@@ -13,9 +13,16 @@ class Surgery extends Model
 
     protected $fillable = [
         'doctor_id',
+        'created_by',
+        'confirmed_by',
+        'status',
         'room_number',
         'start_time',
         'end_time',
+    ];
+
+    protected $attributes = [
+        'status' => 'scheduled',
     ];
 
     /**

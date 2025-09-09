@@ -49,11 +49,26 @@ class SurgeryController extends Controller
             ]);
         }
 
+        $data['created_by'] = $request->user()->id;
+
         $surgery = Surgery::create($data);
 
         if ($doctor = User::find($surgery->doctor_id)) {
             $doctor->notify(new UpcomingSurgery($surgery->start_time));
         }
+
+        return back();
+    }
+
+    /**
+     * Confirm a scheduled surgery.
+     */
+    public function confirm(Request $request, Surgery $surgery): RedirectResponse
+    {
+        $surgery->update([
+            'status' => 'confirmed',
+            'confirmed_by' => $request->user()->id,
+        ]);
 
         return back();
     }

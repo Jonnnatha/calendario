@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::create('surgeries', function (Blueprint $table) {
             $table->id();
             $table->foreignId('doctor_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('confirmed_by')->nullable()->constrained('users')->cascadeOnDelete();
+            $table->enum('status', ['scheduled', 'confirmed'])->default('scheduled');
             $table->integer('room_number');
             $table->timestamp('start_time');
             $table->timestamp('end_time');
