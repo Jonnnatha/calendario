@@ -16,34 +16,26 @@ class SurgeryController extends Controller
      */
     public function index(Request $request): Response
     {
-        // Recalculate conflicts to ensure stored state is consistent
-        Surgery::all()->each(function (Surgery $surgery) {
-            $endsAt = Carbon::parse($surgery->starts_at)->addMinutes($surgery->duration_min);
-
-            $hasConflict = Surgery::roomConflicts(
-                $surgery->room,
-                $surgery->starts_at,
-                $endsAt,
-            )->where('id', '!=', $surgery->id)->exists();
-
-            if ($surgery->is_conflict !== $hasConflict) {
-                $surgery->is_conflict = $hasConflict;
-                $surgery->save();
-            }
-        });
-
-        $surgeries = Surgery::with(['creator', 'confirmer'])->paginate(15);
-
-        $surgeries->getCollection()->transform(function (Surgery $surgery) {
-            $surgery->status = $surgery->is_conflict
-                ? 'conflito'
-                : ($surgery->confirmed_by ? 'confirmado' : 'agendado');
-
-            return $surgery;
-        });
+        $surgeries = Surgery::with(['creator', 'confirmer'])
+            ->paginate(20)
+            ->through(fn (Surgery $surgery) => [
+                'id' => $surgery->id,
+                'patient_name' => $surgery->patient_name,
+                'surgery_type' => $surgery->surgery_type,
+                'room' => $surgery->room,
+                'starts_at' => $surgery->starts_at,
+                'duration_min' => $surgery->duration_min,
+                'end_time' => $surgery->ends_at,
+                'status' => $surgery->is_conflict
+                    ? 'conflito'
+                    : ($surgery->confirmed_by ? 'confirmado' : 'agendado'),
+            ]);
 
         return Inertia::render('Medico/Calendar', [
             'surgeries' => $surgeries,
+            'rooms' => range(1, 9),
+            'canCreate' => $request->user()->hasRole('medico'),
+            'canConfirm' => $request->user()->hasRole('enfermeiro'),
         ]);
     }
 
