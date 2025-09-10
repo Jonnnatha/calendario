@@ -16,9 +16,14 @@ const props = defineProps({
 });
 
 const page = usePage();
-const user = page.props.auth.user;
-const isMedico = computed(() => user.roles.includes('medico'));
-const isEnfermeiro = computed(() => user.roles.includes('enfermeiro'));
+const user = page.props?.auth?.user;
+
+function isMedico() {
+    return Array.isArray(user?.roles) && user.roles.includes('medico');
+}
+function isEnfermeiro() {
+    return Array.isArray(user?.roles) && user.roles.includes('enfermeiro');
+}
 
 const form = useForm({
     doctor_id: user.id,
@@ -76,7 +81,7 @@ const rowClass = (s) => {
 
         <div class="py-6 max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div
-                v-if="isMedico"
+                v-if="isMedico()"
                 class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6"
             >
                 <form @submit.prevent="submit" class="space-y-4">
@@ -208,7 +213,7 @@ const rowClass = (s) => {
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right">
                                 <button
-                                    v-if="isEnfermeiro && !surgery.confirmed_by"
+                                    v-if="isEnfermeiro() && !surgery.confirmed_by"
                                     @click="confirm(surgery.id)"
                                     class="bg-green-500 text-white px-4 py-2 rounded"
                                 >
