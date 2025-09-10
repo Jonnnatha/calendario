@@ -26,7 +26,9 @@ const submit = () => {
 };
 
 const confirm = (id) => {
-    router.post(route('surgeries.confirm', id));
+    router.post(route('surgeries.confirm', id), {}, {
+        onSuccess: () => router.reload({ only: ['surgeries'] }),
+    });
 };
 
 const rowClass = (s) => {
