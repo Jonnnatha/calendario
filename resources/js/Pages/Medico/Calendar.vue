@@ -3,62 +3,31 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import RoomNumberSelect from '@/Components/RoomNumberSelect.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { Head, router, useForm } from '@inertiajs/vue3';
 
 const props = defineProps({
-    surgeries: {
-        type: Object,
-        default: () => ({ data: [], links: [] }),
-    },
+    surgeries: { type: Array, default: () => [] },
+    rooms: { type: Array, default: () => [] },
+    canCreate: { type: Boolean, default: false },
+    canConfirm: { type: Boolean, default: false },
 });
-
-const page = usePage();
-const user = page.props?.auth?.user;
-
-function isMedico() {
-    return Array.isArray(user?.roles) && user.roles.includes('medico');
-}
-function isEnfermeiro() {
-    return Array.isArray(user?.roles) && user.roles.includes('enfermeiro');
-}
 
 const form = useForm({
-    doctor_id: user.id,
     patient_name: '',
     surgery_type: '',
-    room: 1,
+    room: '',
     starts_at: '',
     duration_min: '',
-    end_time: '',
 });
 
-const computeEnd = (start, duration) => {
-    const startDate = new Date(start);
-    return new Date(startDate.getTime() + Number(duration) * 60000).toISOString();
-};
-
 const submit = () => {
-    form.end_time = computeEnd(form.starts_at, form.duration_min);
     form.post(route('surgeries.store'));
 };
 
-const fetchSurgeries = () => {
-    router.reload({ only: ['surgeries'] });
-};
-
 const confirm = (id) => {
-    router.post(route('surgeries.confirm', id), {}, {
-        onSuccess: () => fetchSurgeries(),
-    });
+    router.post(route('surgeries.confirm', id));
 };
-
-const surgeries = computed(() => props.surgeries.data || props.surgeries);
-const links = computed(() => props.surgeries.links || []);
-
-const endTime = (s) => s.end_time || computeEnd(s.starts_at, s.duration_min);
 
 const rowClass = (s) => {
     if (s.status === 'conflito') {
@@ -81,7 +50,7 @@ const rowClass = (s) => {
 
         <div class="py-6 max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div
-                v-if="isMedico()"
+                v-if="canCreate"
                 class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6"
             >
                 <form @submit.prevent="submit" class="space-y-4">
@@ -107,11 +76,13 @@ const rowClass = (s) => {
 
                     <div>
                         <InputLabel for="room" value="Sala" />
-                        <RoomNumberSelect
+                        <select
                             id="room"
                             v-model="form.room"
-                            class="mt-1"
-                        />
+                            class="mt-1 block w-full"
+                        >
+                            <option v-for="r in rooms" :key="r" :value="r">{{ r }}</option>
+                        </select>
                         <InputError class="mt-2" :message="form.errors.room" />
                     </div>
 
@@ -189,32 +160,32 @@ const rowClass = (s) => {
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         <tr
-                            v-for="surgery in surgeries"
-                            :key="surgery.id"
-                            :class="rowClass(surgery)"
+                            v-for="s in surgeries"
+                            :key="s.id"
+                            :class="rowClass(s)"
                         >
                             <td class="px-6 py-4 whitespace-nowrap">
-                                {{ surgery.patient_name }}
+                                {{ s.patient_name }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                {{ surgery.surgery_type }}
+                                {{ s.surgery_type }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                {{ surgery.room }}
+                                {{ s.room }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                {{ surgery.starts_at }}
+                                {{ s.starts_at }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                {{ surgery.duration_min }}
+                                {{ s.duration_min }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                {{ endTime(surgery) }}
+                                {{ s.end_time }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right">
                                 <button
-                                    v-if="isEnfermeiro() && !surgery.confirmed_by"
-                                    @click="confirm(surgery.id)"
+                                    v-if="canConfirm && !s.confirmed_by"
+                                    @click="confirm(s.id)"
                                     class="bg-green-500 text-white px-4 py-2 rounded"
                                 >
                                     Confirmar
@@ -223,25 +194,6 @@ const rowClass = (s) => {
                         </tr>
                     </tbody>
                 </table>
-
-                <div v-if="links.length" class="p-4">
-                    <nav class="flex space-x-2">
-                        <template v-for="link in links" :key="link.url || link.label">
-                            <a
-                                v-if="link.url"
-                                :href="link.url"
-                                v-html="link.label"
-                                class="px-3 py-1 rounded border"
-                                :class="{ 'bg-gray-200': link.active }"
-                            />
-                            <span
-                                v-else
-                                v-html="link.label"
-                                class="px-3 py-1 text-gray-500"
-                            />
-                        </template>
-                    </nav>
-                </div>
             </div>
         </div>
     </AuthenticatedLayout>
